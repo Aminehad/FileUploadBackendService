@@ -1,0 +1,35 @@
+output:
+  sort-results: true
+  print-issued-lines: false
+
+linters:
+  disable-all: true
+  enable:
+    # golangci-lint defaults:
+    - gosimple
+    - govet
+    - ineffassign
+    - staticcheck
+    - unused
+    # extra 
+    - gocyclo
+    - gofmt
+    - gosec
+    - gocognit
+    # - revive
+
+linters-settings:
+  gocyclo:
+    # Minimal code complexity to report.
+    # Default: 30 (but we recommend 10-20)
+    min-complexity: 20
+  gocognit:
+    # minimal code complexity to report, 30 by default (but we recommend 10-20)
+    min-complexity: 30
+  govet:
+    # These govet checks are disabled by default, but they're useful.
+    enable:
+      - niliness
+      - reflectvaluecompare
+      - sortslice
+      - unusedwrite

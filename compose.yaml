@@ -1,0 +1,53 @@
+services:
+  file-upload:
+    container_name: file-upload
+    image: acim/go-reflex
+    command: reflex -d none -s -r "\.(go|yml)$$" -- go run ./cmd/upload-service/ 
+    ports:
+      - 5051:5051
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+    working_dir: /go/src
+    volumes:
+      - ./:/go/src
+    
+  postgres:
+    container_name: postgres
+    image: postgres:15.2-alpine
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 2s
+      timeout: 5s
+      retries: 5
+    ports:
+      - "5431:5432"
+    volumes:
+      - ./db/init/init.sql:/docker-entrypoint-initdb.d/init.sql
+    environment:
+      - POSTGRES_PASSWORD=superuserpass
+
+#  # The following is only provided as a base if you choose to do the object storage bonus.
+#  # Don't forget to also uncomment the last line of this file if you add MinIO.
+#  # For reference: https://min.io/docs/minio/container/index.html.
+#  minio:
+#    image: 'quay.io/minio/minio:latest'
+#    command:
+#      - 'server'
+#      - '/mnt/data'
+#      - '--console-address'
+#      - ':9090'
+#    environment:
+#      - 'MINIO_ROOT_USER=root'
+#      - 'MINIO_ROOT_PASSWORD=password'
+#    ports:
+#      - '9090:9090'
+#    volumes:
+#      - 'minio-data:/mnt/data'
+
+volumes:
+  pg-data: {}
+#  minio-data: {}
+
+
