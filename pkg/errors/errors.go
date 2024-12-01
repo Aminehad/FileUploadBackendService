@@ -1,9 +1,14 @@
 package errors
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+)
+
+var (
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 func HandleBadRequest(c *gin.Context, err error) {

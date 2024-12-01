@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 	"upload-service/internal/app/upload-service/models"
 
 	"upload-service/internal/app/upload-service/repository"
@@ -107,4 +108,40 @@ func (h *handler) DownloadFile(c *gin.Context) {
 type filters struct {
 	FileID   string `form:"fileID"`
 	Filename string `form:"filename"`
+}
+
+func (h *handler) UploadFileRawText(c *gin.Context) {
+	rawText, err := io.ReadAll(c.Request.Body)
+	if err != nil {
+		errors.HandleBadRequest(c, err)
+		return
+	}
+	defer c.Request.Body.Close()
+
+	fileNameTmp := fmt.Sprintf("document_%s.txt", time.Now().Format("20060102_150405"))
+	os.MkdirAll("./uploads", os.ModePerm)
+	filePath := fmt.Sprintf("./uploads/%s", fileNameTmp)
+
+	err = os.WriteFile(filePath, rawText, os.ModePerm)
+	if err != nil {
+		errors.HandleInternalServerError(c, err)
+		return
+	}
+	fileMetaData := models.File{
+		Name: fileNameTmp,
+		Url:  filePath,
+	}
+
+	var fileID *uuid.UUID
+	fileID, err = h.repository.SaveFileMetaData(fileMetaData)
+	if err != nil {
+		if err == repository.ErrDuplicatedKeyUniqueConstraint {
+			errors.HandleConflict(c, err)
+			return
+		}
+		errors.HandleInternalServerError(c, err)
+		return
+	}
+
+	c.JSON(http.StatusCreated, gin.H{"message": "file uploaded successfully", "fileID": fileID})
 }

@@ -36,8 +36,6 @@ func NewServer() *gin.Engine {
 	r.Use(gin.Logger())   // Logs HTTP requests
 	r.Use(gin.Recovery()) // Recovers from panics to avoid crashing
 
-	// TODO: Add Auth middleware HERE
-
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "pong",
@@ -64,6 +62,9 @@ func New(c Configuration) *app {
 
 	files := router.Group("/v1/files")
 	{
+		files.POST("/auth", h.Login)
+
+		files.Use(MiddlewareCheckLoginJWT())
 		files.GET("/", h.ListFiles)
 		files.POST("/upload", h.UploadFile)
 		files.GET("/download", h.DownloadFile)
