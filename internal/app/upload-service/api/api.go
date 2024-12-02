@@ -67,7 +67,7 @@ func New(c Configuration) *app {
 		files.Use(MiddlewareCheckLoginJWT())
 		files.GET("/", h.ListFiles)
 		files.POST("/upload", h.UploadFile)
-		files.GET("/download", h.DownloadFile)
+		files.GET("/:fileID", h.DownloadFile)
 
 	}
 

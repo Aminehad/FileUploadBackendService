@@ -46,7 +46,7 @@ func (h *handler) Login(c *gin.Context) {
 		return
 	}
 	c.SetCookie("access_token", accesToken, int(time.Until(DefaultExpireTime).Seconds()), "/", "localhost", false, true)
-	c.JSON(http.StatusOK, gin.H{"message": "login successful", "accessToken": accesToken})
+	c.JSON(http.StatusOK, gin.H{"message": "login successful", "access_token": accesToken})
 }
 
 func jwtGenerate(userName, secret string, expiresAt time.Duration) (string, error) {

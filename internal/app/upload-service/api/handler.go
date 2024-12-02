@@ -37,7 +37,7 @@ func (h *handler) UploadFile(c *gin.Context) {
 	defer file.Close()
 
 	os.MkdirAll("./uploads", os.ModePerm)
-	filePath := fmt.Sprintf("./uploads/%s", fileHeader.Filename)
+	filePath := fmt.Sprintf("./uploads/document_%s_name:%s", time.Now().Format("20060102_150405"), fileHeader.Filename)
 
 	// save the file to disk/ local file system
 	// TODO : change this to use a storage service S3 Minio/AWS
@@ -69,7 +69,7 @@ func (h *handler) UploadFile(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusCreated, gin.H{"message": "file uploaded successfully", "fileID": fileID})
+	c.JSON(http.StatusCreated, gin.H{"message": "file uploaded successfully", "file_id": fileID})
 }
 
 func (h *handler) ListFiles(c *gin.Context) {
@@ -98,11 +98,36 @@ func (h *handler) ListFiles(c *gin.Context) {
 		return
 	}
 	for i := range files {
-		files[i].Url = fmt.Sprintf("/v1/files/%s", files[i].ID)
+		files[i].Url = fmt.Sprintf("http://localhost:5051/v1/files/%s", files[i].ID)
 	}
 	c.JSON(http.StatusOK, files)
 }
+
 func (h *handler) DownloadFile(c *gin.Context) {
+	fileID, err := uuid.Parse(c.Param("fileID"))
+	if err != nil {
+		errors.HandleBadRequest(c, fmt.Errorf("invalid fileID: %w", err))
+		return
+	}
+	f := repository.FileFilters{
+		ID: fileID,
+	}
+
+	file, err := h.repository.ListFiles(f)
+	if err != nil {
+		if err == repository.ErrRecordNotFound {
+			errors.HandleNotFound(c, fmt.Errorf("file not found: %w", err))
+			return
+		}
+		errors.HandleInternalServerError(c, fmt.Errorf("failed to list files : %w", err))
+		return
+	}
+	//direct the browser to download the file as an attachment
+	c.Header("Content-Disposition", fmt.Sprintf("attachment; filename=%s", file[0].Name))
+	c.Header("Content-Type", "application/octet-stream")
+
+	http.ServeFile(c.Writer, c.Request, file[0].Url)
+	c.JSON(http.StatusOK, gin.H{})
 }
 
 type filters struct {
