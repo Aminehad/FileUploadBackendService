@@ -1,2 +1,220 @@
 openapi: 3.0.3
-# TODO: Add Doc once endpoints are implemented
+info: 
+  title: File Management API
+  version: 1.0.0
+  
+paths:
+  /v1/files/auth:
+    post:
+      summary: Login 
+      security:
+        - Authorization: []
+      operationId: auth
+      tags:
+        - upload-file-service
+      requestBody:
+        description: auth body
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AuthBody'
+      responses:
+        '200':
+          $ref: '#/components/responses/ok200'  
+        '401':
+          $ref: '#/components/responses/error401'
+        '500':
+          $ref: '#/components/responses/error500'
+
+
+  /v1/files:
+    get: 
+      summary:  List uploaded files
+      security:
+        - Authorization: []
+      operationId: getFiles
+      tags:
+        - upload-file-service
+      responses:
+        '200': 
+          description: List of files retrieved successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/File'
+        '401':
+          $ref: '#/components/responses/error401'
+        '404':
+          $ref: '#/components/responses/error404'
+        '500':
+          $ref: '#/components/responses/error500'
+
+
+
+  /v1/files/upload:
+    post:
+      summary: upload a file
+      security:
+        - Authorization: []
+      tags:
+        - upload-file-service
+      operationId: upload        
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: The file to upload.
+      responses: 
+        '201':
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: file uploaded successfully
+                  file_id:
+                    type: string
+                    format: uuid
+        '401':
+          $ref: '#/components/responses/error401'
+        '500':
+          $ref: '#/components/responses/error500' 
+          
+          
+
+  /v1/files/{fileID}:
+    get:
+      summary: Download File
+      security:
+        - Authorization: []
+      operationId: download
+      tags:
+        - upload-file-service
+      parameters:
+        - name: fileID
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+          description: file id 
+      responses:
+        '200':
+          description: file download
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "file downloaded"
+        '401':
+          $ref: '#/components/responses/error401'
+        '404':
+          $ref: '#/components/responses/error404'
+        '500':
+          $ref: '#/components/responses/error500'
+
+components:
+  securitySchemes:
+    Authorization:
+      description: JWT token
+      type: http
+      scheme: bearer
+  schemas:
+
+    AuthBody:
+      type: object
+      properties:
+        username:
+          type: string
+          example: "user1"
+        password:
+          type: string
+          example: "password1"
+
+    AuthResponse:
+      type: object
+      properties:
+        access_token:
+          type: string
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VybmFtZSI6InVzZXIyIiwiaXNzIjoidXBsb2FkLXNlcnZpY2UiLCJleHAiOjE3MzMwOTgzODB9.VT2ujyRB0ugxEPiI76NbSgkQ67_8lMCwpcGDyMPTm1I"
+        message:
+          type: string
+          example: "login successful"
+
+    File:
+      type: object
+      properties:
+        ID:
+          type: string
+          format: uuid
+          description: Unique identifier for the file.
+          example: d290f1ee-6c54-4b01-90e6-d701748f0851
+        Name:
+          type: string
+          description: Name of the file.
+          example: sample.txt
+        Url:
+          type: string
+          format: uri
+          description: Downloadable URL for the file.
+          example: http://localhost:5051/v1/files/d290f1ee-6c54-4b01-90e6-d701748f0851
+        uploadedAt:
+          type: string
+          format: date-time
+          description: Time the file was uploaded.
+          example: 2024-12-02T22:22:22Z      
+  responses:
+    
+    ok200:
+      description: login successful
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/AuthResponse'
+    error401:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              error:
+                type: string
+                example: "invalid credentials"
+    error404:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "file not found: record not found"
+    error500:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Internal server error"
+
+    

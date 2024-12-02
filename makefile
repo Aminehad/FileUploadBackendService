@@ -1,4 +1,5 @@
 UP_SERVICES?=file-upload
+OPENAPI_FILE?=internal/app/upload-service/api/openapi.yml
 
 
 up: ## Build and Run all the docker containers of the project (upload-service / other services...)
@@ -13,3 +14,6 @@ down:  ## Delete all the project docker containers
 
 lint:
 	@golangci-lint run ./...
+
+openapi:
+	npx @redocly/cli preview-docs --port 8083 ${OPENAPI_FILE}
