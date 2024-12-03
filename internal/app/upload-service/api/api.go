@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"upload-service/internal/app/upload-service/repository"
 
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -35,6 +37,10 @@ func NewServer() *gin.Engine {
 	// Add middleware
 	r.Use(gin.Logger())   // Logs HTTP requests
 	r.Use(gin.Recovery()) // Recovers from panics to avoid crashing
+
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	r.Use(MiddlewareRequestMetrics())
 
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{

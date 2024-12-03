@@ -27,6 +27,29 @@ services:
       - ./db/init/init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_PASSWORD=superuserpass
+  
+  prometheus:
+    container_name: prometheus
+    image: prom/prometheus:latest
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus.yml
+    command:
+      - '--config.file=/etc/prometheus.yml'
+  
+  grafana:
+    container_name: grafana
+    image: grafana/grafana
+    ports:
+      - 3000:3000
+    volumes:
+      - ./grafana-datasources.yml:/etc/grafana/provisioning/datasources/grafana-datasources.yml
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    depends_on:
+      - prometheus
 
 #  # The following is only provided as a base if you choose to do the object storage bonus.
 #  # Don't forget to also uncomment the last line of this file if you add MinIO.

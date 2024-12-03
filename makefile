@@ -1,4 +1,4 @@
-UP_SERVICES?=file-upload
+UP_SERVICES?=
 OPENAPI_FILE?=internal/app/upload-service/api/openapi.yml
 
 
