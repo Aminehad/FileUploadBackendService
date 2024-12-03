@@ -45,7 +45,7 @@ func (h *handler) Login(c *gin.Context) {
 		errors.HandleInternalServerError(c, err)
 		return
 	}
-	c.SetCookie("access_token", accesToken, int(time.Until(DefaultExpireTime).Seconds()), "/", "localhost", false, true)
+	// c.SetCookie("access_token", accesToken, int(time.Until(DefaultExpireTime).Seconds()), "/", "localhost", false, true)
 	c.JSON(http.StatusOK, gin.H{"message": "login successful", "access_token": accesToken})
 }
 
@@ -55,6 +55,8 @@ func jwtGenerate(userName, secret string, expiresAt time.Duration) (string, erro
 		RegisteredClaims: jwt.RegisteredClaims{
 			Issuer:    "upload-service",
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expiresAt)),
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+			NotBefore: jwt.NewNumericDate(time.Now()),
 		},
 	}
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
